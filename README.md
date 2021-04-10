@@ -1,15 +1,16 @@
 # My Paint App
 
-This project is a very simple web/desktop application to mimic some functionalities of the well known _Paint_ application. It was developed using Vue3 with SCSS and electron to build the desktop app version.
+This project is a very simple web/desktop application to mimic some functionalities of the well known _Paint_ application. It was developed using Canvas API with Vue3 and SCSS; electron to build the desktop app version.
+My paint app can be accessed at [My Paint App](https://marianapatcosta.github.io/my-paint-app/)
 
 ## Main features
 
 #### Shape picker
 
-There are 9 draw options/shapes available: `free draw`, `straight` lines, `rectangles`, `circles`, `ellipsis`, `triangles`, `eraser`, `text` and `image`.
+There are 9 draw options/shapes available: `free draw`, `straight lines`, `rectangles`, `circles`, `ellipsis`, `triangles`, `eraser`, `text` and `image`.
 
 Select and option and draw it on canvas. The draw will be done at the canvas's point you select and, on mouse move, you determine the size of straight lines, rectangles, circles, ellipsis, triangles and images.
-For text draw, font family and font size are customizable and can also apply _italic_ and _bold_. Using text draw, unicode emojis can also be drawn in canvas.
+For text draw, font family and font size are customizable and can also apply _italic_ and **bold**. Using text draw, unicode emojis can also be drawn in canvas.
 
 By default, all the shapes are drawn with `stroke` without fill, but the `fill` option can be selected and fill can applied in rectangles, circles, ellipsis, triangles, and text shapes.
 
