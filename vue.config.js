@@ -18,5 +18,6 @@ module.exports = {
       args[0].title = 'My Paint App';
       return args;
     });
-  }
+  },
+  publicPath: process.env.NODE_ENV === 'production' ? '/my-paint-app/' : '/'
 };
