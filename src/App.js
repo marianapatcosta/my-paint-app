@@ -65,7 +65,7 @@ export default {
         redo: this.onRedo,
         resize: this.onResize,
         save: this.onSave,
-        clear: this.onClear
+        reset: this.onReset
       },
       resizeCanvas: false
     };
@@ -256,13 +256,15 @@ export default {
     },
     drawTriangle(context) {
       context.moveTo(this.initialMouseX, this.initialMouseY);
-      // x3 is the point in the middle of the base line of equilateral triangle
-      const x3 =
-        Math.abs(this.initialMouseX - this.mouseX) / 2 + this.initialMouseX;
+      // size of a triangle size
+      const triangleLength = Math.abs(this.initialMouseX - this.mouseX);
 
-      // height of the  rect triangle that is formed when equilateral triangle is divided
-      // in 2 triangles.
-      const height = (x3 - this.initialMouseX) * Math.cos(Math.PI / 6);
+      // x3 is the point in the middle of the base line of equilateral triangle
+      const x3 = triangleLength / 2 + this.initialMouseX;
+
+      // height = length * Math.cos(30) <=> length * Math.cos(Math.PI / 6)
+      // const height = triangleLength * Math.cos(Math.PI / 6);
+      const height = (triangleLength * Math.sqrt(3, 2)) / 2;
       context.lineTo(this.mouseX, this.initialMouseY);
       context.lineTo(x3, this.initialMouseY - height);
       context.closePath();
@@ -313,13 +315,9 @@ export default {
     onTextOptionsUpdate(value, field) {
       this.textOptions = { ...this.textOptions, [field]: value };
     },
-    onClear() {
+    onReset() {
       this.clearCanvas(this.context);
       this.clearCanvas(this.contextPreview);
-      this.mouseX = 0;
-      this.mouseY = 0;
-      this.initialMouseX = 0;
-      this.initialMouseY = 0;
     },
     onSave() {
       const fileName = prompt('Please enter the file name');
@@ -333,7 +331,7 @@ export default {
     onResize() {
       this.resizeCanvas = !this.resizeCanvas;
     },
-    undo() {},
-    redo() {}
+    onUndo() {},
+    onRedo() {}
   }
 };
