@@ -30,8 +30,8 @@ export const drawTypes = {
 
 export const shapes = {
   FREE: 'free',
-  RECTANGLE: 'rectangle',
   LINE: 'line',
+  RECTANGLE: 'rectangle',
   CIRCLE: 'circle',
   ELLIPSIS: 'ellipsis',
   TRIANGLE: 'triangle',
@@ -70,8 +70,8 @@ export const defaultTextOptions = {
 export const operations = [
   'resize',
   'save',
-  'clear'
-  /*  'undo',
+  'reset'
+  /* 'undo',
   'redo',
    rotate: 'rotate', */
 ];
