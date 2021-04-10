@@ -1,0 +1,45 @@
+.shapes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 7rem;
+
+  &__item-wrapper {
+    position: relative;
+  }
+
+  &__item {
+    width: 2rem;
+    height: 2rem;
+    border: 0.0625rem solid $color-highlight;
+    border-radius: 0.3rem;
+    margin: 0.1rem 0.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--active {
+      border: 0.125rem solid $color-black;
+      box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    }
+
+    &:hover {
+      + .tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%);
+        z-index: 1;
+      }
+    }
+
+    img {
+      width: 1.2rem;
+      pointer-events: none;
+    }
+  }
+
+  &__input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+}

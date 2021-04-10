@@ -1,0 +1,168 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  font-size: 0.8rem;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+
+  &__main {
+    padding-top: 4rem;
+    margin: 2rem 3rem;
+    width: 100%;
+  }
+
+  &__sidebar {
+    width: 8rem;
+    margin-right: 2rem;
+
+    &-item {
+      display: flex;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    p {
+      writing-mode: vertical-rl;
+      transform: scale(-1);
+      text-align: right;
+      margin-top: 0.2rem;
+      font-weight: 700;
+      color: $color-highlight;
+    }
+
+    &-item-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr);
+      width: 7rem;
+      margin-bottom: 1.5rem;
+
+      > div {
+        position: relative;
+      }
+
+      button {
+        width: 2rem;
+        height: 2rem;
+        border: 0.0625rem solid $color-highlight;
+        border-radius: 0.3rem;
+        margin: 0.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          + .tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%);
+            z-index: 1;
+          }
+        }
+        img {
+          width: 1.2rem;
+          pointer-events: none;
+        }
+      }
+    }
+
+    &-radio {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+
+      label {
+        display: flex;
+        align-items: center;
+        line-height: 0.8rem;
+
+        &:hover {
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+
+  &__main-body {
+    display: flex;
+    width: 100%;
+  }
+
+  &__canvas-wrapper {
+    position: relative;
+    width: calc(100% - 10rem - 6.5rem);
+  }
+
+  &__canvas {
+    position: absolute;
+    border: 0.0625rem solid $color-highlight;
+    border-radius: 0.2rem;
+    left: 0;
+    top: 0;
+
+    &--drawing {
+      cursor: url('./assets/icons/pencil.svg'), default;
+    }
+  }
+
+  &__canvas-preview {
+    z-index: -1;
+
+    &--active {
+      z-index: 1;
+    }
+  }
+
+  &__resize {
+    position: absolute;
+    display: flex;
+    top: 2.5rem;
+    left: 1.4rem;
+    justify-content: space-between;
+    width: 6.7rem;
+    box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    background-color: $color-white;
+    border-radius: 0.1rem;
+    padding: 0.2rem;
+    font-size: 95%;
+    z-index: 1;
+
+    label {
+      width: 3rem;
+      color: $color-highlight;
+    }
+
+    input {
+      margin-top: 0.3rem;
+      color: revert;
+      height: 1.5rem;
+      width: 100%;
+      box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+      border-radius: 0.1rem;
+      padding: 0 0.2rem;
+      font: inherit;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type='number'] {
+      -moz-appearance: textfield;
+    }
+  }
+}
+
+@media only screen and (min-width: 480px) {
+  .app {
+    font-size: 0.85rem;
+  }
+}
+
+@media only screen and (min-width: 767px) {
+  .app {
+    font-size: 1rem;
+  }
+}

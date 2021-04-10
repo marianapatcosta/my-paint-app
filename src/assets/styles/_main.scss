@@ -1,0 +1,124 @@
+@import 'settings/index';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: 0.125rem solid $color-highlight;
+  }
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+button,
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+  user-select: none;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.6;
+}
+
+.tooltip {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  font-size: 90%;
+  color: $color-white;
+  line-height: 1.2rem;
+  background-color: $color-highlight;
+  padding: 0.2rem 0.4rem;
+  box-shadow: 0.0625rem 0.0625rem 0.225rem $color-shadow;
+  bottom: -1.5rem;
+  left: 50%;
+  z-index: -1;
+  border-radius: 0rem;
+  -webkit-border-radius: 0.3rem;
+  -moz-border-radius: 0.3rem;
+  -ms-border-radius: 0.3rem;
+  -o-border-radius: 0.3rem;
+  width: fit-content;
+  height: fit-content;
+  white-space: nowrap;
+  transition: all 0.5s ease-in-out 0.5s;
+  cursor: pointer;
+}
+
+.radio-button__wrapper {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  font-size: 95%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.radio-button {
+  position: relative;
+  height: 0.7rem;
+  width: 0.7rem;
+  border: 0.063rem solid $color-highlight;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  -ms-border-radius: 50%;
+  -o-border-radius: 50%;
+  cursor: pointer;
+  margin: 0 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radio-button:hover {
+  opacity: 0.75;
+}
+
+.radio-button:after {
+  content: '';
+  height: 0;
+  width: 0;
+  background-color: $color-highlight;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  -ms-border-radius: 50%;
+  -o-border-radius: 50%;
+  transition: all 0.3s ease-in-out;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+}
+
+input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+input[type='radio']:checked + .radio-button:after {
+  height: 75%;
+  width: 75%;
+}
+
+input[type='radio']:focus-visible + .radio-button {
+  outline: 0.125rem solid $color-highlight;
+}
+
+input[type='radio']:focus:not(:focus-visible) + .radio-button {
+  outline: none;
+}
