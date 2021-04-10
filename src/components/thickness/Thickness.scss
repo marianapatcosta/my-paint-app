@@ -1,0 +1,22 @@
+.thickness {
+  display: flex;
+  &__item {
+    display: block;
+    width: 1.2rem;
+    height: 5rem;
+    border: 0.0625rem solid $color-highlight;
+    border-radius: 0.2rem;
+    margin: 0.1rem;
+
+    &--active {
+      border: 0.125rem solid $color-black;
+      box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    }
+
+    div {
+      height: 80%;
+      margin: 0 auto;
+      background-color: $color-black;
+    }
+  }
+}

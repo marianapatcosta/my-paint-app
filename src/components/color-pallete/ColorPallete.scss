@@ -1,0 +1,56 @@
+.color-pallete {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  &__wrapper {
+    width: 5rem;
+  }
+
+  &__color {
+    width: 2rem;
+    height: 2rem;
+    margin: 0.1rem 0.2rem;
+    border: 0.0625rem solid $color-highlight;
+    border-radius: 0.2rem;
+
+    &--active {
+      border: 0.125rem solid $color-black;
+      box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    }
+  }
+
+  &__personalize-wrapper {
+    position: relative;
+  }
+
+  &__personalize {
+    border: 0.0625rem solid $color-highlight;
+    border-radius: 50%;
+    box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      + .tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%);
+        z-index: 1;
+      }
+    }
+
+    img {
+      width: 1rem;
+      pointer-events: none;
+      filter: invert(74%) sepia(0%) saturate(1%) hue-rotate(220deg)
+        brightness(92%) contrast(92%);
+    }
+  }
+
+  &__input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+}

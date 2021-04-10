@@ -1,0 +1,43 @@
+.text-configs {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 11rem;
+  box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+  background-color: $color-white;
+  border-radius: 0.1rem;
+  padding: 0.2rem;
+  font-size: 95%;
+
+  input {
+    height: 1.5rem;
+    box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    border-radius: 0.1rem;
+    padding: 0 0.2rem;
+    font: inherit;
+  }
+
+  &-bar {
+    display: flex;
+    align-items: center;
+    margin-top: 0.3rem;
+
+    button {
+      width: 1.2rem;
+      margin: 0 0.1rem;
+      border-radius: 0.2rem;
+      border: 0.1rem solid $color-transparent;
+    }
+
+    select {
+      font: inherit;
+      border-radius: 0.1rem;
+      box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+    }
+  }
+  &-button--active {
+    border-color: $color-black;
+    box-shadow: 0.035rem 0.035rem 0.1rem $color-black;
+  }
+}
