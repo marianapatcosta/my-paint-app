@@ -280,8 +280,8 @@ export default {
         this.selectedThickness
       );
     },
-    getDistance(p1x, p1y, p2x, p2y) {
-      return Math.sqrt(Math.pow(p1x - p2x, 2) + Math.pow(p1y - p2y, 2));
+    getDistance(x1, y1, x2, y2) {
+      return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     },
     setMouseCoordinates(event) {
       this.mouseX = event.clientX - this.boundings.left;
