@@ -40,7 +40,7 @@
         position: relative;
       }
 
-      button {
+      .button {
         width: 2rem;
         height: 2rem;
         border: 0.0625rem solid $color-highlight;
@@ -62,6 +62,11 @@
           width: 1.2rem;
           pointer-events: none;
         }
+      }
+
+      .button--disabled {
+        pointer-events: none;
+        opacity: 0.5;
       }
     }
 
