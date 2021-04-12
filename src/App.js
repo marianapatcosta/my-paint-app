@@ -53,7 +53,7 @@ export default {
         rectangle: this.drawRectangle,
         line: this.drawLine,
         circle: this.drawCircle,
-        ellipsis: this.drawEllipsis,
+        ellipse: this.drawEllipse,
         triangle: this.drawTriangle,
         eraser: this.erase,
         text: this.drawText,
@@ -67,7 +67,9 @@ export default {
         save: this.onSave,
         reset: this.onReset
       },
-      resizeCanvas: false
+      resizeCanvas: false,
+      stackHistory: [],
+      nrOfStackSteps: null
     };
   },
   components: {
@@ -108,6 +110,20 @@ export default {
     clearCanvas(context) {
       context.clearRect(0, 0, this.width, this.height);
     },
+    isOperationButtonDisabled(operation) {
+      if (operation === operations.UNDO) {
+        if (!this.stackHistory.length) return true;
+        if (this.nrOfStackSteps === null) return false;
+        return this.nrOfStackSteps <= 0;
+      }
+      if (operation === operations.REDO) {
+        if (!this.stackHistory.length || this.nrOfStackSteps === null)
+          return true;
+        return this.nrOfStackSteps >= this.stackHistory.length;
+      }
+
+      return false;
+    },
     initialSetup(context) {
       this.isPreview && this.clearCanvas(this.contextPreview);
       context.beginPath();
@@ -118,167 +134,225 @@ export default {
       context.fillStyle = this.selectedFillColor;
     },
     startDrawing(event) {
+      if (
+        this.nrOfStackSteps &&
+        this.nrOfStackSteps < this.stackHistory.length
+      ) {
+        this.stackHistory = this.stackHistory.slice(0, this.nrOfStackSteps);
+      }
+      this.nrOfStackSteps = null;
       this.setMouseCoordinates(event);
       this.setInitialMouseCoordinates(event);
       this.isDrawing = true;
       this.isPreview = !this.drawWithoutPreview.includes(this.selectedShape);
       this.showTextOptions = this.selectedShape === shapes.TEXT;
     },
-    finishDrawing(event) {
-      this.setMouseCoordinates(event);
+    finishDrawing() {
       this.isDrawing = false;
       this.isPreview = false;
 
+      this.saveConfigsInStack();
       if (!this.drawWithoutPreview.includes(this.selectedShape)) {
         this.clearCanvas(this.contextPreview);
         this.initialSetup(this.context);
         this.selectedShape && this.drawShape[this.selectedShape](this.context);
       }
     },
-    drawShapeInCanvas(context) {
+    drawShapeInCanvas(context, hasFill) {
       if (this.isPreview) return context.stroke();
       context.stroke();
-      this.hasFill && context.fill();
+      hasFill && context.fill();
     },
-    draw(event) {
-      if (!this.isDrawing && !this.isPreview) return;
+    draw() {
+      if (!this.isDrawing || this.isPreview) return;
       this.initialSetup(this.context);
-      this.selectedShape &&
-        this.selectedShape !== 'text' &&
-        this.drawShape[this.selectedShape](this.context, event);
+      if (this.selectedShape && this.selectedShape !== 'text') {
+        this.drawShape[this.selectedShape](this.context);
+        //this.saveConfigsInStack();
+      }
     },
     drawPreview(event) {
-      if (!this.isDrawing && this.isPreview) return;
+      if (!this.isDrawing || !this.isPreview) return;
       this.setMouseCoordinates(event);
       this.initialSetup(this.contextPreview);
       this.selectedShape &&
         this.drawShape[this.selectedShape](this.contextPreview);
     },
-    freeDraw(context, event) {
-      context.moveTo(this.mouseX, this.mouseY);
+    freeDraw(context, configs) {
+      const settings = configs ? configs : this;
+      context.moveTo(settings.mouseX, settings.mouseY);
       this.setMouseCoordinates(event);
-      context.lineTo(this.mouseX, this.mouseY);
+      context.lineTo(settings.mouseX, settings.mouseY);
       context.stroke();
     },
-    drawLine(context) {
-      context.moveTo(this.initialMouseX, this.initialMouseY);
-      context.lineTo(this.mouseX, this.mouseY);
+    drawLine(context, configs) {
+      const settings = configs ? configs : this;
+      context.moveTo(settings.initialMouseX, settings.initialMouseY);
+      context.lineTo(settings.mouseX, settings.mouseY);
       context.stroke();
     },
-    drawRectangle(context) {
-      context.moveTo(this.initialMouseX, this.initialMouseY);
+    drawRectangle(context, configs) {
+      const settings = configs ? configs : this;
+      context.moveTo(settings.initialMouseX, settings.initialMouseY);
       context.rect(
-        this.initialMouseX,
-        this.initialMouseY,
-        this.mouseX - this.initialMouseX,
-        this.mouseY - this.initialMouseY
+        settings.initialMouseX,
+        settings.initialMouseY,
+        settings.mouseX - settings.initialMouseX,
+        settings.mouseY - settings.initialMouseY
       );
-      this.drawShapeInCanvas(context);
+      this.drawShapeInCanvas(context, settings.hasFill);
     },
-    drawImage(context) {
+    drawImage(context, configs) {
       if (!this.uploadedImages.length) return;
+      const settings = configs ? configs : this;
       const image = new Image();
-      image.src = this.uploadedImages[this.uploadedImages.length - 1];
-      context.moveTo(this.initialMouseX, this.initialMouseY);
+      image.src =
+        this.uploadedImages[settings.uploadedImageIndex] ||
+        this.uploadedImages[this.uploadedImages.length - 1];
+      context.moveTo(settings.initialMouseX, settings.initialMouseY);
       image.onload = () =>
         context.drawImage(
           image,
-          this.initialMouseX,
-          this.initialMouseY,
-          this.mouseX - this.initialMouseX,
-          this.mouseY - this.initialMouseY
+          settings.initialMouseX,
+          settings.initialMouseY,
+          settings.mouseX - settings.initialMouseX,
+          settings.mouseY - settings.initialMouseY
         );
     },
-    drawCircle(context) {
+    drawCircle(context, configs) {
+      const settings = configs ? configs : this;
       const radian = Math.PI / 180;
       const radius = this.getDistance(
-        this.initialMouseX,
-        this.initialMouseY,
-        this.mouseX,
-        this.mouseY
+        settings.initialMouseX,
+        settings.initialMouseY,
+        settings.mouseX,
+        settings.mouseY
       );
       context.arc(
-        this.initialMouseX,
-        this.initialMouseY,
+        settings.initialMouseX,
+        settings.initialMouseY,
         radius,
         0 * radian,
         360 * radian
       );
-      this.drawShapeInCanvas(context);
+      this.drawShapeInCanvas(context, settings.hasFill);
     },
-    drawEllipsis(context) {
+    drawEllipse(context, configs) {
+      const settings = configs ? configs : this;
       context.moveTo(
-        this.initialMouseX,
-        this.initialMouseY + (this.mouseY - this.initialMouseY) / 2
+        settings.initialMouseX,
+        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
       );
       context.bezierCurveTo(
-        this.initialMouseX,
-        this.initialMouseY,
-        this.mouseX,
-        this.initialMouseY,
-        this.mouseX,
-        this.initialMouseY + (this.mouseY - this.initialMouseY) / 2
+        settings.initialMouseX,
+        settings.initialMouseY,
+        settings.mouseX,
+        settings.initialMouseY,
+        settings.mouseX,
+        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
       );
       context.bezierCurveTo(
-        this.mouseX,
-        this.mouseY,
-        this.initialMouseX,
-        this.mouseY,
-        this.initialMouseX,
-        this.initialMouseY + (this.mouseY - this.initialMouseY) / 2
+        settings.mouseX,
+        settings.mouseY,
+        settings.initialMouseX,
+        settings.mouseY,
+        settings.initialMouseX,
+        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
       );
       context.closePath();
-      this.drawShapeInCanvas(context);
+      this.drawShapeInCanvas(context, settings.hasFill);
     },
-    drawText(canvasText) {
-      if (!canvasText) return;
-      const { fontFamily, fontSize, isItalic, isBold } = this.textOptions;
-      this.context.fillStyle = this.selectedFillColor;
-      this.context.strokeStyle = this.selectedStrokeColor;
+    drawText(canvasText, configs) {
+      const text = configs ? configs.canvasText : canvasText;
+      if (!text) return;
+      const settings = configs ? configs : this;
+      const { fontFamily, fontSize, isItalic, isBold } = settings.textOptions;
+      this.context.fillStyle = settings.selectedFillColor;
+      this.context.strokeStyle = settings.selectedStrokeColor;
       this.context.font = `${isItalic ? 'italic' : 'normal'} ${
         isBold ? 700 : 400
       } ${fontSize} ${fontFamily}`;
-      this.drawType === drawTypes.FILL
+      settings.hasFill
         ? this.context.fillText(
-            canvasText,
-            this.initialMouseX,
-            this.initialMouseY
+            text,
+            settings.initialMouseX,
+            settings.initialMouseY
           )
         : this.context.strokeText(
-            canvasText,
-            this.initialMouseX,
-            this.initialMouseY
+            text,
+            settings.initialMouseX,
+            settings.initialMouseY
           );
 
-      this.isDrawing = false;
+      !configs && this.saveConfigsInStack(canvasText);
       this.textOptions = defaultTextOptions;
+      this.isDrawing = false;
       this.showTextOptions = false;
     },
-    drawTriangle(context) {
-      context.moveTo(this.initialMouseX, this.initialMouseY);
+    drawTriangle(context, configs) {
+      const settings = configs ? configs : this;
+      context.moveTo(settings.initialMouseX, settings.initialMouseY);
       // size of a triangle size
-      const triangleLength = Math.abs(this.initialMouseX - this.mouseX);
+      const triangleLength = Math.abs(settings.initialMouseX - settings.mouseX);
 
       // x3 is the point in the middle of the base line of equilateral triangle
-      const x3 = triangleLength / 2 + this.initialMouseX;
+      const x3 = triangleLength / 2 + settings.initialMouseX;
 
       // height = length * Math.cos(30) <=> length * Math.cos(Math.PI / 6)
       // const height = triangleLength * Math.cos(Math.PI / 6);
       const height = (triangleLength * Math.sqrt(3, 2)) / 2;
-      context.lineTo(this.mouseX, this.initialMouseY);
-      context.lineTo(x3, this.initialMouseY - height);
+      context.lineTo(settings.mouseX, settings.initialMouseY);
+      context.lineTo(x3, settings.initialMouseY - height);
       context.closePath();
-      this.drawShapeInCanvas(context);
+      this.drawShapeInCanvas(context, settings.hasFill);
     },
-    erase(context, event) {
-      context.moveTo(this.mouseX, this.mouseY);
+    erase(context, configs) {
+      const settings = configs ? configs : this;
+      context.moveTo(settings.mouseX, settings.mouseY);
       this.setMouseCoordinates(event);
       context.clearRect(
-        this.mouseX,
-        this.mouseY,
-        this.selectedThickness,
-        this.selectedThickness
+        settings.mouseX,
+        settings.mouseY,
+        settings.selectedThickness,
+        settings.selectedThickness
       );
+    },
+    saveConfigsInStack(canvasText) {
+      const configs = {
+        initialMouseX: this.initialMouseX,
+        initialMouseY: this.initialMouseY,
+        mouseX: this.mouseX,
+        mouseY: this.mouseY,
+        selectedShape: this.selectedShape,
+        selectedThickness: this.selectedThickness,
+        selectedFillColor: this.selectedFillColor,
+        selectedStrokeColor: this.selectedStrokeColor,
+        hasFill: this.hasFill
+      };
+
+      if (this.selectedShape === shapes.TEXT) {
+        configs.textOptions = this.textOptions;
+        configs.canvasText = canvasText;
+      }
+
+      if (this.selectedShape === shapes.IMAGE) {
+        configs.uploadedImageIndex = this.uploadedImages.length - 1;
+      }
+      this.stackHistory.push(configs);
+    },
+    redraw() {
+      if (!this.stackHistory.length) return;
+      this.clearCanvas(this.context);
+      this.isDrawing = true;
+      const configsArray = this.stackHistory.slice(0, this.nrOfStackSteps);
+      configsArray.forEach(configs => {
+        this.context.beginPath();
+        this.context.lineWidth = configs.selectedThickness;
+        this.context.strokeStyle = configs.selectedStrokeColor;
+        this.context.fillStyle = configs.selectedFillColor;
+        this.drawShape[configs.selectedShape](this.context, configs);
+      });
+      this.isDrawing = false;
     },
     getDistance(x1, y1, x2, y2) {
       return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
@@ -318,6 +392,8 @@ export default {
     onReset() {
       this.clearCanvas(this.context);
       this.clearCanvas(this.contextPreview);
+      this.stackHistory = [];
+      this.nrOfStackSteps = null;
     },
     onSave() {
       const fileName = prompt('Please enter the file name');
@@ -331,7 +407,28 @@ export default {
     onResize() {
       this.resizeCanvas = !this.resizeCanvas;
     },
-    onUndo() {},
-    onRedo() {}
+    onUndo() {
+      this.isDrawing = false;
+      this.nrOfStackSteps = this.getCurrentStackIndex();
+      this.nrOfStackSteps -= 1;
+      if (this.nrOfStackSteps < 0) {
+        return (this.nrOfStackSteps = null);
+      }
+      this.redraw();
+    },
+    onRedo() {
+      this.isDrawing = false;
+      this.nrOfStackSteps = this.getCurrentStackIndex();
+      this.nrOfStackSteps += 1;
+      if (this.nrOfStackSteps > this.stackHistory.length) {
+        return (this.nrOfStackSteps = null);
+      }
+      this.redraw();
+    },
+    getCurrentStackIndex() {
+      return this.nrOfStackSteps !== null
+        ? this.nrOfStackSteps
+        : this.stackHistory.length || 0;
+    }
   }
 };

@@ -33,12 +33,11 @@ export const shapes = {
   LINE: 'line',
   RECTANGLE: 'rectangle',
   CIRCLE: 'circle',
-  ELLIPSIS: 'ellipsis',
+  ELLIPSE: 'ellipse',
   TRIANGLE: 'triangle',
   ERASER: 'eraser',
   TEXT: 'text',
   IMAGE: 'image'
-  /*   'heart', */
 };
 
 export const fontFamilies = [
@@ -67,11 +66,11 @@ export const defaultTextOptions = {
   isBold: false
 };
 
-export const operations = [
-  'resize',
-  'save',
-  'reset'
-  /* 'undo',
-  'redo',
-   rotate: 'rotate', */
-];
+export const operations = {
+  RESIZE: 'resize',
+  SAVE: 'save',
+  RESET: 'reset',
+  UNDO: 'undo',
+  REDO: 'redo'
+  /* rotate: 'rotate', */
+};

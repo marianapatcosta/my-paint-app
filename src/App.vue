@@ -12,8 +12,13 @@
                 :key="`operation-${operation}`"
               >
                 <button
+                  class="button"
+                  :class="{
+                    'button--disabled': isOperationButtonDisabled(operation)
+                  }"
                   :aria-label="`click to ${operation}`"
                   @click="operationMethods[operation]"
+                  :disabled="isOperationButtonDisabled(operation)"
                 >
                   <img
                     :src="require(`./assets/icons/${operation}.svg`)"

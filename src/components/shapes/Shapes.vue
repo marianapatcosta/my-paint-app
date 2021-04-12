@@ -2,7 +2,7 @@
   <div class="shapes">
     <div
       class="shapes__item-wrapper"
-      v-for="shapeItem in Object.values(shapes)"
+      v-for="shapeItem in shapes"
       :key="`shape-${shapeItem}`"
     >
       <button

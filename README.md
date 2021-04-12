@@ -7,19 +7,19 @@ My paint app can be accessed at [My Paint App](https://marianapatcosta.github.io
 
 #### Shape picker
 
-There are 9 draw options/shapes available: `free draw`, `straight lines`, `rectangles`, `circles`, `ellipsis`, `triangles`, `eraser`, `text` and `image`.
+There are 9 draw options/shapes available: `free draw`, `straight lines`, `rectangles`, `circles`, `ellipse`, `triangles`, `eraser`, `text` and `image`.
 
-Select and option and draw it on canvas. The draw will be done at the canvas's point you select and, on mouse move, you determine the size of straight lines, rectangles, circles, ellipsis, triangles and images.
+Select and option and draw it on canvas. The draw will be done at the canvas's point you select and, on mouse move, you determine the size of straight lines, rectangles, circles, ellipse, triangles and images.
 For text draw, font family and font size are customizable and can also apply _italic_ and **bold**. Using text draw, unicode emojis can also be drawn in canvas.
 
-By default, all the shapes are drawn with `stroke` without fill, but the `fill` option can be selected and fill can applied in rectangles, circles, ellipsis, triangles, and text shapes.
+By default, all the shapes are drawn with `stroke` without fill, but the `fill` option can be selected and fill can applied in rectangles, circles, ellipse, triangles, and text shapes.
 
 #### Color picker
 
 A simple color pallete is available by default but any color can be used in this app, due to `personalize` option that allow to pick any color.
 
 The user can select a color for the stroke (the color picked when `stroke` option is selected) and for the fill (the color picked when `fill` option is selected).
-If `fill`option is selected, the shapes will be drawn will the color for selected the fill with a border with the color selected for the stroke (applicable for rectangles, circles, ellipsis, triangles, and text).
+If `fill`option is selected, the shapes will be drawn will the color for selected the fill with a border with the color selected for the stroke (applicable for rectangles, circles, ellipse, triangles, and text).
 
 #### Thickness picker
 
@@ -29,6 +29,10 @@ If `fill`option is selected, the shapes will be drawn will the color for selecte
 
 The canvas size is optimized for different screen sizes (mobile not included). However, canvas `width`and `height` is fully customizable. By clicking on `resize` button, these dimensions can be inserted and canvas automatically adopts them.
 
+#### Undo/Redo
+
+The items added to canvas can be removed/readded to cavnas, accordign to first-item-first-put logic, by clicking on `undo` / `redo` buttons. This functionality is not included for free draw and eraser.
+
 #### Reset canvas
 
 The draw produced in this app can be deleted. `Clear` button, resets the canvas, so the draw can be restarted.
@@ -36,12 +40,6 @@ The draw produced in this app can be deleted. `Clear` button, resets the canvas,
 #### Save draw
 
 The draw produced in this app can be saved as a .png file. By clicking on `save` a prompt appear so the file name can be assigned.
-
-## Future improvements
-
-- Create a stack history, so `undo`and `redo` functionalities can be implemented;
-
-- Add option to resize, rotate, drag and copy each element drawn in the canvas.
 
 ## Project setup
 
