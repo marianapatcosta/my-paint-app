@@ -206,9 +206,9 @@ export default {
       if (!this.uploadedImages.length) return;
       const settings = configs ? configs : this;
       const image = new Image();
-      image.src =
-        this.uploadedImages[settings.uploadedImageIndex] ||
-        this.uploadedImages[this.uploadedImages.length - 1];
+      image.src = configs
+        ? this.uploadedImages[settings.uploadedImageIndex]
+        : this.uploadedImages[this.uploadedImages.length - 1];
       context.moveTo(settings.initialMouseX, settings.initialMouseY);
       image.onload = () =>
         context.drawImage(
@@ -338,14 +338,19 @@ export default {
       if (this.selectedShape === shapes.IMAGE) {
         configs.uploadedImageIndex = this.uploadedImages.length - 1;
       }
-      this.stackHistory.push(configs);
+
+      const newStackItem = this.stackHistory.length
+        ? [...this.stackHistory[this.stackHistory.length - 1], configs]
+        : [configs];
+
+      this.stackHistory.push(newStackItem);
     },
     redraw() {
       if (!this.stackHistory.length) return;
       this.clearCanvas(this.context);
       this.isDrawing = true;
-      const configsArray = this.stackHistory.slice(0, this.nrOfStackSteps);
-      configsArray.forEach(configs => {
+      const stackItems = [...this.stackHistory[this.nrOfStackSteps - 1]];
+      stackItems.forEach(configs => {
         this.context.beginPath();
         this.context.lineWidth = configs.selectedThickness;
         this.context.strokeStyle = configs.selectedStrokeColor;
