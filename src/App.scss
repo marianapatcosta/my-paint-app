@@ -28,6 +28,7 @@
       margin-top: 0.2rem;
       font-weight: 700;
       color: $color-highlight;
+      user-select: none;
     }
 
     &-item-grid {
@@ -65,8 +66,8 @@
       }
 
       .button--disabled {
-        pointer-events: none;
         opacity: 0.5;
+        cursor: default;
       }
     }
 
@@ -100,6 +101,7 @@
 
   &__canvas {
     position: absolute;
+    margin-top: 0.2rem;
     border: 0.0625rem solid $color-highlight;
     border-radius: 0.2rem;
     left: 0;

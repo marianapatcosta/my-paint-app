@@ -1,4 +1,4 @@
-import { thickness } from '../constants';
+import { thickness } from '../../constants';
 
 export default {
   name: 'Thickness',

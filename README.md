@@ -27,19 +27,23 @@ If `fill`option is selected, the shapes will be drawn will the color for selecte
 
 #### Resize
 
-The canvas size is optimized for different screen sizes (mobile not included). However, canvas `width`and `height` is fully customizable. By clicking on `resize` button, these dimensions can be inserted and canvas automatically adopts them.
+The canvas size is optimized for different screen sizes (mobile not included). However, canvas `width` and `height` is fully customizable. By clicking on `resize` button, these dimensions can be inserted and canvas automatically adopts them.
 
 #### Undo/Redo
 
-The items added to canvas can be removed/readded to cavnas, accordign to first-item-first-put logic, by clicking on `undo` / `redo` buttons. This functionality is not included for free draw and eraser.
+The items added to canvas can be removed/readded to the canvas, according to first-item-first-out logic, by clicking on `undo` / `redo` buttons. This functionality is not applicable to free draw and eraser.
+
+#### Select to drag/edit
+
+The items `circle`, `rectangle`, `ìmage`, `ellipse`, `triangle` and `line` can be dragged and edited, by clicking on `select` button. When this button is clicked, the user can select a shape in the canvas by clicking on it; the shape can now be dragged. By double clicking on the shape, edit functionalities are available, including _resizing_, change _fill_, _stroke_ and _thickness_. The seledcted shape can also be duplicated, by clicking on `duplicate` button. `rotate clockwise` and `rotate counterclockwise` buttons allow to rotate the selected shape; for each click, the shape undergoes a rotation of and extra +10deg 0r -10deg, respectively.
 
 #### Reset canvas
 
-The draw produced in this app can be deleted. `Clear` button, resets the canvas, so the draw can be restarted.
+The draw produced in this app can be deleted. `Clear` button, resets the canvas, so the draw can be made form the begining.
 
 #### Save draw
 
-The draw produced in this app can be saved as a .png file. By clicking on `save` a prompt appear so the file name can be assigned.
+The draw produced with this app can be saved as a `.png` file. By clicking on `save` a prompt appear so the file name can be assigned.
 
 ## Project setup
 

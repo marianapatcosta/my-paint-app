@@ -7,12 +7,26 @@ import {
 } from './components';
 import {
   baseColors,
+  canvasModes,
   defaultTextOptions,
   drawTypes,
   operations,
   shapes,
   thickness
-} from './components/constants';
+} from './constants';
+import { findSelectedElement } from './utils/checkSelection';
+import {
+  drawCircle,
+  drawEllipse,
+  drawImage,
+  drawLine,
+  drawRectangle,
+  drawText,
+  drawTriangle,
+  erase,
+  freeDraw
+} from './utils/draw';
+import { isElectron, getCanvasDimensions } from './utils/utils';
 
 export default {
   name: 'App',
@@ -36,6 +50,8 @@ export default {
       initialMouseX: 0,
       initialMouseY: 0,
       isDrawing: false,
+      isDragging: false,
+      isResizing: false,
       isPreview: false,
       drawType: drawTypes.STROKE,
       drawTypes,
@@ -49,27 +65,33 @@ export default {
       selectedShape: shapes.FREE,
       drawWithoutPreview: [shapes.FREE, shapes.ERASER, shapes.TEXT],
       drawShape: {
-        free: this.freeDraw,
-        rectangle: this.drawRectangle,
-        line: this.drawLine,
-        circle: this.drawCircle,
-        ellipse: this.drawEllipse,
-        triangle: this.drawTriangle,
-        eraser: this.erase,
-        text: this.drawText,
-        image: this.drawImage
+        free: freeDraw,
+        rectangle: drawRectangle,
+        line: drawLine,
+        circle: drawCircle,
+        ellipse: drawEllipse,
+        triangle: drawTriangle,
+        eraser: erase,
+        text: drawText,
+        image: drawImage
       },
       operations,
       operationMethods: {
         undo: this.onUndo,
         redo: this.onRedo,
-        resize: this.onResize,
+        resize: this.onCanvasResize,
         save: this.onSave,
-        reset: this.onReset
+        reset: this.onReset,
+        select: this.onSelect,
+        duplicate: this.onDuplicate,
+        rotate_clockwise: this.onRotateClockwise,
+        rotate_counterclockwise: this.onRotateCounterclockwise
       },
       resizeCanvas: false,
       stackHistory: [],
-      nrOfStackSteps: null
+      nrOfStackSteps: null,
+      canvasMode: canvasModes.DRAW,
+      selectedElementIndex: null
     };
   },
   components: {
@@ -91,26 +113,35 @@ export default {
       this.context = context;
       this.contextPreview = contextPreview;
       this.boundings = canvas.getBoundingClientRect();
-      const { width, height } = this.getCanvasDimensions();
+      const { width, height } = getCanvasDimensions();
       this.width = width;
       this.height = height;
-    },
-    getCanvasDimensions() {
-      if (window.innerWidth > 1023) {
-        return { width: 900, height: 620 };
-      }
-      if (window.innerWidth > 767) {
-        return { width: 600, height: 620 };
-      }
-      if (window.innerWidth > 480) {
-        return { width: 400, height: 580 };
-      }
-      return { width: 200, height: 580 };
     },
     clearCanvas(context) {
       context.clearRect(0, 0, this.width, this.height);
     },
     isOperationButtonDisabled(operation) {
+      if (operation === operations.DUPLICATE) {
+        return (
+          this.canvasMode !== canvasModes.EDIT ||
+          this.selectedElementIndex === null
+        );
+      }
+      if (
+        operation === operations.ROTATE_CLOCKWISE ||
+        operation === operations.ROTATE_COUNTERCLOCKWISE
+      ) {
+        const shape = this.selectedElementIndex
+          ? this.stackHistory[this.stackHistory.length - 1][
+              this.selectedElementIndex
+            ].selectedShape
+          : '';
+        return (
+          this.canvasMode !== canvasModes.EDIT ||
+          this.selectedElementIndex === null ||
+          (shape !== shapes.RECTANGLE && shape !== shapes.IMAGE)
+        );
+      }
       if (operation === operations.UNDO) {
         if (!this.stackHistory.length) return true;
         if (this.nrOfStackSteps === null) return false;
@@ -133,7 +164,8 @@ export default {
         : this.selectedStrokeColor;
       context.fillStyle = this.selectedFillColor;
     },
-    startDrawing(event) {
+    onMouseDown(event) {
+      // eliminates undone stack, if exists, when the user clicks on canvas
       if (
         this.nrOfStackSteps &&
         this.nrOfStackSteps < this.stackHistory.length
@@ -143,32 +175,64 @@ export default {
       this.nrOfStackSteps = null;
       this.setMouseCoordinates(event);
       this.setInitialMouseCoordinates(event);
-      this.isDrawing = true;
-      this.isPreview = !this.drawWithoutPreview.includes(this.selectedShape);
-      this.showTextOptions = this.selectedShape === shapes.TEXT;
-    },
-    finishDrawing() {
-      this.isDrawing = false;
-      this.isPreview = false;
 
-      this.saveConfigsInStack();
-      if (!this.drawWithoutPreview.includes(this.selectedShape)) {
-        this.clearCanvas(this.contextPreview);
-        this.initialSetup(this.context);
-        this.selectedShape && this.drawShape[this.selectedShape](this.context);
+      if (this.canvasMode === canvasModes.DRAW) {
+        this.isDrawing = true;
+        this.isPreview = !this.drawWithoutPreview.includes(this.selectedShape);
+        this.showTextOptions = this.selectedShape === shapes.TEXT;
+        return;
+      }
+      if (this.canvasMode === canvasModes.DRAG) {
+        this.isDragging = true;
+      }
+      if (this.canvasMode === canvasModes.EDIT) {
+        this.isResizing = true;
+      }
+      findSelectedElement(event, this);
+      this.selectedElementIndex !== null &&
+        this.copyAndAddLastStateToStackHistory();
+    },
+    onMouseMove(event) {
+      switch (this.canvasMode) {
+        case canvasModes.DRAW:
+          return this.isPreview ? this.drawPreview(event) : this.draw(event);
+        case canvasModes.DRAG:
+          return this.drag(event);
+        case canvasModes.EDIT:
+          return this.resize(event);
+        default:
+          return;
       }
     },
-    drawShapeInCanvas(context, hasFill) {
-      if (this.isPreview) return context.stroke();
-      context.stroke();
-      hasFill && context.fill();
+    onMouseUp() {
+      this.isDrawing = false;
+      this.isPreview = false;
+      this.isDragging = false;
+      this.isResizing = false;
+
+      if (this.canvasMode === canvasModes.DRAW) {
+        this.saveConfigsInStack();
+      }
+
+      if (
+        !this.drawWithoutPreview.includes(
+          this.selectedShape && this.canvasMode === canvasModes.DRAW
+        )
+      ) {
+        this.clearCanvas(this.contextPreview);
+        this.initialSetup(this.context);
+        this.selectedShape &&
+          this.drawShape[this.selectedShape](this.context, this);
+      }
+    },
+    drawText(canvasText) {
+      drawText(canvasText, this);
     },
     draw() {
       if (!this.isDrawing || this.isPreview) return;
       this.initialSetup(this.context);
-      if (this.selectedShape && this.selectedShape !== 'text') {
-        this.drawShape[this.selectedShape](this.context);
-        //this.saveConfigsInStack();
+      if (this.selectedShape && this.selectedShape !== shapes.TEXT) {
+        this.drawShape[this.selectedShape](this.context, this);
       }
     },
     drawPreview(event) {
@@ -176,146 +240,57 @@ export default {
       this.setMouseCoordinates(event);
       this.initialSetup(this.contextPreview);
       this.selectedShape &&
-        this.drawShape[this.selectedShape](this.contextPreview);
+        this.drawShape[this.selectedShape](this.contextPreview, this);
     },
-    freeDraw(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(settings.mouseX, settings.mouseY);
+    drag(event) {
+      if (
+        this.canvasMode !== canvasModes.DRAG ||
+        !this.isDragging ||
+        this.selectedElementIndex === null
+      )
+        return;
+
       this.setMouseCoordinates(event);
-      context.lineTo(settings.mouseX, settings.mouseY);
-      context.stroke();
-    },
-    drawLine(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(settings.initialMouseX, settings.initialMouseY);
-      context.lineTo(settings.mouseX, settings.mouseY);
-      context.stroke();
-    },
-    drawRectangle(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(settings.initialMouseX, settings.initialMouseY);
-      context.rect(
-        settings.initialMouseX,
-        settings.initialMouseY,
-        settings.mouseX - settings.initialMouseX,
-        settings.mouseY - settings.initialMouseY
+      const selectedElement = this.stackHistory[this.stackHistory.length - 1][
+        this.selectedElementIndex
+      ];
+      const xDiff = Math.abs(
+        selectedElement.mouseX - selectedElement.initialMouseX
       );
-      this.drawShapeInCanvas(context, settings.hasFill);
-    },
-    drawImage(context, configs) {
-      if (!this.uploadedImages.length) return;
-      const settings = configs ? configs : this;
-      const image = new Image();
-      image.src = configs
-        ? this.uploadedImages[settings.uploadedImageIndex]
-        : this.uploadedImages[this.uploadedImages.length - 1];
-      context.moveTo(settings.initialMouseX, settings.initialMouseY);
-      image.onload = () =>
-        context.drawImage(
-          image,
-          settings.initialMouseX,
-          settings.initialMouseY,
-          settings.mouseX - settings.initialMouseX,
-          settings.mouseY - settings.initialMouseY
-        );
-    },
-    drawCircle(context, configs) {
-      const settings = configs ? configs : this;
-      const radian = Math.PI / 180;
-      const radius = this.getDistance(
-        settings.initialMouseX,
-        settings.initialMouseY,
-        settings.mouseX,
-        settings.mouseY
+      const yDiff = Math.abs(
+        selectedElement.mouseY - selectedElement.initialMouseY
       );
-      context.arc(
-        settings.initialMouseX,
-        settings.initialMouseY,
-        radius,
-        0 * radian,
-        360 * radian
-      );
-      this.drawShapeInCanvas(context, settings.hasFill);
-    },
-    drawEllipse(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(
-        settings.initialMouseX,
-        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
-      );
-      context.bezierCurveTo(
-        settings.initialMouseX,
-        settings.initialMouseY,
-        settings.mouseX,
-        settings.initialMouseY,
-        settings.mouseX,
-        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
-      );
-      context.bezierCurveTo(
-        settings.mouseX,
-        settings.mouseY,
-        settings.initialMouseX,
-        settings.mouseY,
-        settings.initialMouseX,
-        settings.initialMouseY + (settings.mouseY - settings.initialMouseY) / 2
-      );
-      context.closePath();
-      this.drawShapeInCanvas(context, settings.hasFill);
-    },
-    drawText(canvasText, configs) {
-      const text = configs ? configs.canvasText : canvasText;
-      if (!text) return;
-      const settings = configs ? configs : this;
-      const { fontFamily, fontSize, isItalic, isBold } = settings.textOptions;
-      this.context.fillStyle = settings.selectedFillColor;
-      this.context.strokeStyle = settings.selectedStrokeColor;
-      this.context.font = `${isItalic ? 'italic' : 'normal'} ${
-        isBold ? 700 : 400
-      } ${fontSize} ${fontFamily}`;
-      settings.hasFill
-        ? this.context.fillText(
-            text,
-            settings.initialMouseX,
-            settings.initialMouseY
-          )
-        : this.context.strokeText(
-            text,
-            settings.initialMouseX,
-            settings.initialMouseY
-          );
 
-      !configs && this.saveConfigsInStack(canvasText);
-      this.textOptions = defaultTextOptions;
-      this.isDrawing = false;
-      this.showTextOptions = false;
+      this.updateItemState('initialMouseX', this.mouseX);
+      this.updateItemState('initialMouseY', this.mouseY);
+      this.updateItemState('mouseX', this.mouseX + xDiff);
+      this.updateItemState('mouseY', this.mouseY + yDiff);
+      this.redraw();
     },
-    drawTriangle(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(settings.initialMouseX, settings.initialMouseY);
-      // size of a triangle size
-      const triangleLength = Math.abs(settings.initialMouseX - settings.mouseX);
-
-      // x3 is the point in the middle of the base line of equilateral triangle
-      const x3 = triangleLength / 2 + settings.initialMouseX;
-
-      // height = length * Math.cos(30) <=> length * Math.cos(Math.PI / 6)
-      // const height = triangleLength * Math.cos(Math.PI / 6);
-      const height = (triangleLength * Math.sqrt(3, 2)) / 2;
-      context.lineTo(settings.mouseX, settings.initialMouseY);
-      context.lineTo(x3, settings.initialMouseY - height);
-      context.closePath();
-      this.drawShapeInCanvas(context, settings.hasFill);
-    },
-    erase(context, configs) {
-      const settings = configs ? configs : this;
-      context.moveTo(settings.mouseX, settings.mouseY);
+    resize(event) {
+      if (
+        this.canvasMode !== canvasModes.EDIT ||
+        !this.isResizing ||
+        this.selectedElementIndex === null
+      )
+        return;
+      console.log('resize', this.selectedElementIndex, this.stackHistory);
       this.setMouseCoordinates(event);
-      context.clearRect(
-        settings.mouseX,
-        settings.mouseY,
-        settings.selectedThickness,
-        settings.selectedThickness
-      );
+      this.updateItemState('mouseX', this.mouseX);
+      this.updateItemState('mouseY', this.mouseY);
+      this.redraw();
+    },
+    updateItemState(fieldToUpdate, newValue) {
+      // changes in the current stack items (last item of stackHistory) the selected element state
+      this.stackHistory[this.stackHistory.length - 1][
+        this.selectedElementIndex
+      ][fieldToUpdate] = newValue;
+    },
+    copyAndAddLastStateToStackHistory(newConfigs) {
+      const itemToAdd = newConfigs
+        ? [...this.stackHistory[this.stackHistory.length - 1], newConfigs]
+        : this.stackHistory[this.stackHistory.length - 1];
+      this.stackHistory.push([...JSON.parse(JSON.stringify(itemToAdd))]);
     },
     saveConfigsInStack(canvasText) {
       const configs = {
@@ -327,7 +302,8 @@ export default {
         selectedThickness: this.selectedThickness,
         selectedFillColor: this.selectedFillColor,
         selectedStrokeColor: this.selectedStrokeColor,
-        hasFill: this.hasFill
+        hasFill: this.hasFill,
+        rotation: 0
       };
 
       if (this.selectedShape === shapes.TEXT) {
@@ -339,28 +315,31 @@ export default {
         configs.uploadedImageIndex = this.uploadedImages.length - 1;
       }
 
-      const newStackItem = this.stackHistory.length
-        ? [...this.stackHistory[this.stackHistory.length - 1], configs]
-        : [configs];
-
-      this.stackHistory.push(newStackItem);
+      this.stackHistory.length
+        ? this.copyAndAddLastStateToStackHistory(configs)
+        : this.stackHistory.push([configs]);
     },
     redraw() {
       if (!this.stackHistory.length) return;
       this.clearCanvas(this.context);
       this.isDrawing = true;
-      const stackItems = [...this.stackHistory[this.nrOfStackSteps - 1]];
-      stackItems.forEach(configs => {
+      let currentStackItems;
+      if (this.nrOfStackSteps === null) {
+        currentStackItems = this.stackHistory[this.stackHistory.length - 1];
+      } else if (this.nrOfStackSteps === 0) {
+        currentStackItems = [];
+      } else {
+        currentStackItems = this.stackHistory[this.nrOfStackSteps - 1];
+      }
+
+      currentStackItems.forEach(configs => {
         this.context.beginPath();
         this.context.lineWidth = configs.selectedThickness;
         this.context.strokeStyle = configs.selectedStrokeColor;
         this.context.fillStyle = configs.selectedFillColor;
-        this.drawShape[configs.selectedShape](this.context, configs);
+        this.drawShape[configs.selectedShape](this.context, this, configs);
       });
       this.isDrawing = false;
-    },
-    getDistance(x1, y1, x2, y2) {
-      return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     },
     setMouseCoordinates(event) {
       this.mouseX = event.clientX - this.boundings.left;
@@ -370,17 +349,42 @@ export default {
       this.initialMouseX = event.clientX - this.boundings.left;
       this.initialMouseY = event.clientY - this.boundings.top;
     },
-    onColorSelect(selectedColor) {
-      if (this.hasFill) {
-        return (this.selectedFillColor = selectedColor);
+    onColorSelect(color) {
+      if (
+        this.canvasMode === canvasModes.EDIT &&
+        this.selectedElementIndex !== null
+      ) {
+        this.copyAndAddLastStateToStackHistory();
+
+        if (this.hasFill) {
+          this.updateItemState('selectedFillColor', color);
+          this.updateItemState('hasFill', this.hasFill);
+          return this.redraw();
+        }
+        this.updateItemState('selectedStrokeColor', color);
+        this.redraw();
       }
-      this.selectedStrokeColor = selectedColor;
+
+      if (this.hasFill) {
+        return (this.selectedFillColor = color);
+      }
+      this.selectedStrokeColor = color;
     },
     onThicknessSelect(thickness) {
+      if (
+        this.canvasMode === canvasModes.EDIT &&
+        this.selectedElementIndex !== null
+      ) {
+        this.copyAndAddLastStateToStackHistory();
+        this.updateItemState('selectedThickness', thickness);
+        this.redraw();
+      }
       this.selectedThickness = thickness;
     },
     onShapeSelect(shape) {
       this.selectedShape = shape;
+      this.canvasMode = canvasModes.DRAW;
+      this.selectedElementIndex = null;
       if (shape === shapes.FREE || shape === shapes.LINE) {
         this.drawType = drawTypes.STROKE;
       }
@@ -401,7 +405,7 @@ export default {
       this.nrOfStackSteps = null;
     },
     onSave() {
-      const fileName = prompt('Please enter the file name');
+      const fileName = !isElectron() && prompt('Please enter the file name');
       const canvas = this.$refs.canvas;
       const canvasDataUrl = canvas.toDataURL();
       const a = document.createElement('a');
@@ -409,8 +413,13 @@ export default {
       a.download = fileName || 'my-paint-app-draw';
       a.click();
     },
-    onResize() {
+    onCanvasResize() {
       this.resizeCanvas = !this.resizeCanvas;
+    },
+    onSelect() {
+      this.selectedShape = null;
+      this.showTextOptions = false;
+      this.canvasMode = canvasModes.DRAG;
     },
     onUndo() {
       this.isDrawing = false;
@@ -429,6 +438,49 @@ export default {
         return (this.nrOfStackSteps = null);
       }
       this.redraw();
+    },
+    onDuplicate() {
+      if (
+        this.canvasMode === canvasModes.EDIT &&
+        this.selectedElementIndex !== null
+      ) {
+        const duplicateElement = this.stackHistory[
+          this.stackHistory.length - 1
+        ][this.selectedElementIndex];
+        this.copyAndAddLastStateToStackHistory(duplicateElement);
+        this.redraw();
+      }
+    },
+    onRotateClockwise() {
+      this.onRotate();
+    },
+    onRotateCounterclockwise() {
+      this.onRotate(false);
+    },
+    onRotate(isRotationClockwise = true) {
+      if (
+        this.canvasMode === canvasModes.EDIT &&
+        this.selectedElementIndex !== null
+      ) {
+        const currentRotation = this.stackHistory[this.stackHistory.length - 1][
+          this.selectedElementIndex
+        ].rotation;
+        const ROTATION_UPDATE = isRotationClockwise ? 10 : -10;
+        console.log({ currentRotation });
+        this.copyAndAddLastStateToStackHistory();
+        const newRotation =
+          currentRotation + ROTATION_UPDATE <= 360
+            ? currentRotation + ROTATION_UPDATE
+            : 0;
+        this.updateItemState('rotation', newRotation);
+        this.redraw();
+      }
+    },
+    setEditMode() {
+      this.canvasMode = canvasModes.EDIT;
+    },
+    setDragMode() {
+      this.canvasMode = canvasModes.DRAG;
     },
     getCurrentStackIndex() {
       return this.nrOfStackSteps !== null

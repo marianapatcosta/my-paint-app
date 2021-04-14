@@ -1,4 +1,4 @@
-import { baseColors } from '../constants';
+import { baseColors } from '../../constants';
 
 export default {
   name: 'ColorPallete',
