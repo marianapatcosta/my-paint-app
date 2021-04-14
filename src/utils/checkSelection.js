@@ -22,7 +22,6 @@ export const findSelectedElement = (event, thisContext) => {
         return;
     }
   });
-  console.log({ selectedElementIndex });
   thisContext.selectedElementIndex =
     selectedElementIndex !== -1 ? selectedElementIndex : null;
 };
@@ -63,49 +62,11 @@ const isARectangleSelected = (configs, thisContext) => {
   );
 };
 
-const isALineSelected = (configs, thisContext) => {
-  /*   const beginingToTarget = this.getDistance(
-      configs.initialMouseX ,
-      configs.initialMouseY,
-      this.initialMouseX,
-      this.initialMouseY
-    );
-    const endToTarget = this.getDistance(
-      configs.mouseX,
-      configs.mouseY,
-      this.initialMouseX,
-      this.initialMouseY
-    );
-    const beginToEnd = this.getDistance(
-      configs.initialMouseX,
-      configs.initialMouseY,
-      configs.mouseX,
-      configs.mouseY
-    );
-
-    return beginingToTarget + endToTarget === beginToEnd; */
-
-  console.log(
-    888,
-    configs,
-    configs.initialMouseX,
-    configs.initialMouseY,
-    configs.mouseX,
-    configs.mouseY,
-    thisContext.initialMouseX,
-    thisContext.initialMouseY,
-    (thisContext.initialMouseY - configs.initialMouseY) /
-      (configs.mouseY - configs.initialMouseY) ===
-      (thisContext.initialMouseX - configs.initialMouseX) /
-        (configs.mouseX - configs.initialMouseX)
-  );
-  return (
-    (thisContext.initialMouseY - configs.initialMouseY) /
-      (configs.mouseY - configs.initialMouseY) ===
-    (thisContext.initialMouseX - configs.initialMouseX) /
-      (configs.mouseX - configs.initialMouseX)
-  );
-};
+const isALineSelected = (configs, thisContext) =>
+  (thisContext.initialMouseX - configs.initialMouseX) /
+    (configs.mouseX - configs.initialMouseX) ===
+  (thisContext.initialMouseY - configs.initialMouseY) /
+    (configs.mouseY - configs.initialMouseY);
 
 const isATriangleSelected = (configs, thisContext) => {
   const triangleLength = Math.abs(configs.initialMouseX - configs.mouseX);
@@ -144,18 +105,6 @@ const isATriangleSelected = (configs, thisContext) => {
     configs.mouseX,
     configs.initialMouseY
   );
-  console.log(
-    66,
-    configs.initialMouseX,
-    configs.initialMouseY,
-    configs.mouseX,
-    configs.initialMouseY,
-    x3,
-    y3,
-    thisContext.initialMouseX,
-    thisContext.initialMouseY
-  );
-  console.log(99, area1 + area2 + area3 <= totalArea);
   return area1 + area2 + area3 <= totalArea;
 };
 

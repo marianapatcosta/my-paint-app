@@ -274,7 +274,6 @@ export default {
         this.selectedElementIndex === null
       )
         return;
-      console.log('resize', this.selectedElementIndex, this.stackHistory);
       this.setMouseCoordinates(event);
       this.updateItemState('mouseX', this.mouseX);
       this.updateItemState('mouseY', this.mouseY);
@@ -466,7 +465,6 @@ export default {
           this.selectedElementIndex
         ].rotation;
         const ROTATION_UPDATE = isRotationClockwise ? 10 : -10;
-        console.log({ currentRotation });
         this.copyAndAddLastStateToStackHistory();
         const newRotation =
           currentRotation + ROTATION_UPDATE <= 360
