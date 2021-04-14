@@ -108,10 +108,8 @@ const isATriangleSelected = (configs, thisContext) => {
   return area1 + area2 + area3 <= totalArea;
 };
 
-const getTriangleArea = (x1, y1, x2, y2, x3, y3) => {
-  return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
-};
+const getTriangleArea = (x1, y1, x2, y2, x3, y3) =>
+  (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
 
-const getDistance = (x1, y1, x2, y2) => {
-  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-};
+const getDistance = (x1, y1, x2, y2) =>
+  Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
