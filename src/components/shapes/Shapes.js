@@ -1,4 +1,4 @@
-import { shapes } from '../constants';
+import { shapes } from '../../constants';
 
 export default {
   name: 'Shapes',

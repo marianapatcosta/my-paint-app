@@ -71,6 +71,17 @@ export const operations = {
   SAVE: 'save',
   RESET: 'reset',
   UNDO: 'undo',
-  REDO: 'redo'
-  /* rotate: 'rotate', */
+  REDO: 'redo',
+  SELECT: 'select',
+  DUPLICATE: 'duplicate',
+  ROTATE_CLOCKWISE: 'rotate_clockwise',
+  ROTATE_COUNTERCLOCKWISE: 'rotate_counterclockwise'
 };
+
+export const canvasModes = {
+  DRAW: 'draw',
+  DRAG: 'drag',
+  EDIT: 'edit'
+};
+
+export const radian = Math.PI / 180;

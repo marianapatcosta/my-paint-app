@@ -1,4 +1,4 @@
-import { fontFamilies, fontSizes } from '../constants';
+import { fontFamilies, fontSizes } from '../../constants';
 
 export default {
   name: 'TextConfigs',

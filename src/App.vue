@@ -21,11 +21,17 @@
                   :disabled="isOperationButtonDisabled(operation)"
                 >
                   <img
-                    :src="require(`./assets/icons/${operation}.svg`)"
-                    :alt="`${operation} icon`"
+                    :src="
+                      require(`./assets/icons/${operation
+                        .split('_')
+                        .join('-')}.svg`)
+                    "
+                    :alt="`${operation.split('_').join(' ')}} icon`"
                   />
                 </button>
-                <span class="tooltip">{{ operation }}</span>
+                <span class="tooltip">{{
+                  operation.split('_').join(' ')
+                }}</span>
               </div>
             </div>
             <div class="app__resize" v-if="resizeCanvas">
@@ -90,9 +96,11 @@
             aria-label="draw here!"
             :width="width"
             :height="height"
-            @mousedown="startDrawing"
-            @mouseup="finishDrawing"
-            @mousemove="draw"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
+            @click="setDragMode"
+            @dblclick="setEditMode"
           />
           <canvas
             class=" app__canvas app__canvas-preview"
@@ -105,9 +113,9 @@
             aria-label="draw here!"
             :width="width"
             :height="height"
-            @mousedown="startDrawing"
-            @mouseup="finishDrawing"
-            @mousemove="drawPreview"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
           />
           <app-text-configs
             :showTextOptions="showTextOptions"
