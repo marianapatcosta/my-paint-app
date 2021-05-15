@@ -175,7 +175,6 @@ export default {
       this.nrOfStackSteps = null;
       this.setMouseCoordinates(event);
       this.setInitialMouseCoordinates(event);
-
       if (this.canvasMode === canvasModes.DRAW) {
         this.isDrawing = true;
         this.isPreview = !this.drawWithoutPreview.includes(this.selectedShape);
@@ -475,10 +474,14 @@ export default {
       }
     },
     setEditMode() {
-      this.canvasMode = canvasModes.EDIT;
+      if (this.canvasMode !== canvasModes.DRAW) {
+        this.canvasMode = canvasModes.EDIT;
+      }
     },
     setDragMode() {
-      this.canvasMode = canvasModes.DRAG;
+      if (this.canvasMode !== canvasModes.DRAW) {
+        this.canvasMode = canvasModes.DRAG;
+      }
     },
     getCurrentStackIndex() {
       return this.nrOfStackSteps !== null
