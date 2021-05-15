@@ -93,6 +93,12 @@ yarn lint
 
 ```
 
+## Project deploy
+
+run `yarn build`
+commit the new dist folder `git add dist` and `git commit -m 'adding dist subtree'`
+run `git subtree push --prefix dist origin gh-pages`
+
 ### Customize configuration
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
