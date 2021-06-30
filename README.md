@@ -45,6 +45,8 @@ The draw produced in this app can be deleted. `Clear` button, resets the canvas,
 
 The draw produced with this app can be saved as a `.png` file. By clicking on `save` a prompt appear so the file name can be assigned.
 
+![my-paint-overview](https://user-images.githubusercontent.com/43031902/124005586-2bbb0080-d9d1-11eb-926e-10ec835750b1.png)
+
 ## Project setup
 
 ```
